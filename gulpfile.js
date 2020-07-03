@@ -1,4 +1,5 @@
-const { src, dest, watch, parallel } = require('gulp');
+const { src, dest, watch, parallel, series  } = require('gulp');
+
 const sass          = require('gulp-sass');
 const ejs           = require('gulp-ejs');
 const rename        = require('gulp-rename');
@@ -6,13 +7,13 @@ const eslint        = require('gulp-eslint');
 const mocha         = require('gulp-mocha');
 const sync          = require('browser-sync').create();
 
-function copy(cb) {
-  src('routes/*.js')
-    .pipe(dest('copies'));
-  cb();
-}
+// function copy(cb) {
+//   src('routes/*.js')
+//     .pipe(dest('copies'));
+//   cb();
+// }
 
-function generateCss(cb) {
+function generateCSS(cb) {
   src('./sass/**/*.scss')
     .pipe(sass().on('error', sass.logError))
     .pipe(dest('public/stylesheets'))
@@ -42,7 +43,7 @@ function runLinter(cb) {
     });
 }
 
-function runTest(cb) {
+function runTests(cb) {
   return src(['**/*.test.js'])
     .pipe(mocha())
     .on('error', function() {
@@ -55,8 +56,8 @@ function runTest(cb) {
 
 function watchFiles(cb) {
   watch('views/**.ejs', generateHTML);
-  watch('sass/**.scss', generateCss);
-  watch(['**/*.js', '!node_modules/**'], parallel(runLinter, runTest));
+  watch('sass/**.scss', generateCSS);
+  watch(['**/*.js', '!node_modules/**'], parallel(runLinter, runTests));
   cb();
 }
 
@@ -67,15 +68,17 @@ function browserSync(cb) {
     }
   });
   watch('views/**.ejs', generateHTML);
-  watch('sass/**.scss', generateCss);
+  watch('sass/**.scss', generateCSS);
   watch("./public/**.html").on('change', sync.reload);
   cb();
 }
 
-exports.copy  = copy;
-exports.css   = generateCss;
-exports.html  = generateHTML;
-exports.lint  = runLinter;  
-exports.test  = runTest;
-exports.watch = watchFiles;
-exports.sync  = browserSync; 
+// exports.copy    = copy;
+exports.css     = generateCSS;
+exports.html    = generateHTML;
+exports.lint    = runLinter;  
+exports.test    = runTests;
+exports.watch   = watchFiles;
+exports.sync    = browserSync; 
+
+exports.default = series(runLinter,parallel(generateCSS,generateHTML),runTests);

@@ -4,6 +4,7 @@ const ejs           = require('gulp-ejs');
 const rename        = require('gulp-rename');
 const eslint        = require('gulp-eslint');
 const mocha         = require('gulp-mocha');
+const sync          = require('browser-sync').create();
 
 function copy(cb) {
   src('routes/*.js')
@@ -14,7 +15,8 @@ function copy(cb) {
 function generateCss(cb) {
   src('./sass/**/*.scss')
     .pipe(sass().on('error', sass.logError))
-    .pipe(dest('public/stylesheets'));
+    .pipe(dest('public/stylesheets'))
+    .pipe(sync.stream());
   cb();
 }
 
@@ -58,9 +60,22 @@ function watchFiles(cb) {
   cb();
 }
 
+function browserSync(cb) {
+  sync.init({
+    server: {
+      baseDir: './public'
+    }
+  });
+  watch('views/**.ejs', generateHTML);
+  watch('sass/**.scss', generateCss);
+  watch("./public/**.html").on('change', sync.reload);
+  cb();
+}
+
 exports.copy  = copy;
 exports.css   = generateCss;
 exports.html  = generateHTML;
-exports.lint  = runLinter;
+exports.lint  = runLinter;  
 exports.test  = runTest;
-exports.watch = watchFiles; 
+exports.watch = watchFiles;
+exports.sync  = browserSync; 

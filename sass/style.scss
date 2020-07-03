@@ -1,7 +1,14 @@
 $font-stack: Helvetica, sans-serif;
-$primary-color: #555;
+$primary-color: #666;
+$second-color: #fff;
 
 body {
   font: 100% $font-stack;
   color: $primary-color;
+
+  h1 {
+    background-color: $primary-color;
+    color: $second-color;
+    text-align: center;
+  }
 }

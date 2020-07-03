@@ -1,4 +1,4 @@
-const { src, dest } = require('gulp');
+const { src, dest, watch, parallel } = require('gulp');
 const sass          = require('gulp-sass');
 const ejs           = require('gulp-ejs');
 const rename        = require('gulp-rename');
@@ -51,8 +51,16 @@ function runTest(cb) {
     });
 }
 
-exports.copy = copy;
-exports.css  = generateCss;
-exports.html = generateHTML;
-exports.lint = runLinter;
-exports.test = runTest;
+function watchFiles(cb) {
+  watch('views/**.ejs', generateHTML);
+  watch('sass/**.scss', generateCss);
+  watch(['**/*.js', '!node_modules/**'], parallel(runLinter, runTest));
+  cb();
+}
+
+exports.copy  = copy;
+exports.css   = generateCss;
+exports.html  = generateHTML;
+exports.lint  = runLinter;
+exports.test  = runTest;
+exports.watch = watchFiles; 
